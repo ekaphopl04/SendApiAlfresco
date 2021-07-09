@@ -1,0 +1,7 @@
+    POST  https://beflextest.bcecm.com/alfresco/api/-default-/public/authentication/versions/1/tickets 
+    Content-Type: application/javascript
+
+      {
+      "userId": "admin",
+      "password": "abcABC123"
+      }
