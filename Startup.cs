@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
+using km.settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -26,11 +30,20 @@ namespace ApiClient
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
+            
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "ApiClient", Version = "v1" });
+            });
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+         
+            services.AddHttpClient("alfresco",config => {
+                var settings = Configuration.Get<Appsettings>();
+                var alfresco =  settings.Alfresco;
+                var byteArray = Encoding.ASCII.GetBytes($"{alfresco.User}:{alfresco.Password}");
+                config.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",Convert.ToBase64String(byteArray));
+                config.BaseAddress = new Uri(alfresco.Url);
             });
         }
 
@@ -54,6 +67,8 @@ namespace ApiClient
             {
                 endpoints.MapControllers();
             });
+           
         }
+        
     }
 }

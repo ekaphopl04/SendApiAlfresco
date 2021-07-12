@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 
 namespace testApi{
-    class Program
+    class Program1
     {   /*
         HttpClient client = new HttpClient();
 

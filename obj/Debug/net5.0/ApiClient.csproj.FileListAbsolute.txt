@@ -28,3 +28,7 @@
 /Users/bc-work/mywork/ApiClient/obj/Debug/net5.0/ApiClient.genruntimeconfig.cache
 /Users/bc-work/mywork/ApiClient/bin/Debug/net5.0/Newtonsoft.Json.dll
 /Users/bc-work/mywork/ApiClient/bin/Debug/net5.0/AlfrescoApi.dll
+/Users/bc-work/mywork/ApiClient/bin/Debug/net5.0/Microsoft.EntityFrameworkCore.dll
+/Users/bc-work/mywork/ApiClient/bin/Debug/net5.0/Microsoft.EntityFrameworkCore.Abstractions.dll
+/Users/bc-work/mywork/ApiClient/bin/Debug/net5.0/Microsoft.Extensions.DependencyInjection.dll
+/Users/bc-work/mywork/ApiClient/bin/Debug/net5.0/System.Diagnostics.DiagnosticSource.dll
