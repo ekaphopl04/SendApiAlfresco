@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace km.settings{
 
-public class  Appsettings
+public class Appsettings
 {
     public Alfresco Alfresco {set;get;}
 }

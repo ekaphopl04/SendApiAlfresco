@@ -30,14 +30,14 @@ namespace ApiClient
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            
+            var settings = Configuration.Get<Appsettings>();
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "ApiClient", Version = "v1" });
             });
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-         
+            services.AddSingleton<Appsettings>(settings);
             services.AddHttpClient("alfresco",config => {
                 var settings = Configuration.Get<Appsettings>();
                 var alfresco =  settings.Alfresco;
@@ -60,6 +60,7 @@ namespace ApiClient
             app.UseHttpsRedirection();
 
             app.UseRouting();
+            app.UseStaticFiles();
 
             app.UseAuthorization();
 
