@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using AlfrescoApi.Custom;
 using Microsoft.AspNetCore.Http;
@@ -21,8 +22,6 @@ namespace ApiClient.Models
         public UploadProperty property {get ;set ;}
         public IFormFile file {get ;set ;}
 
-       
-        
     }
     public class UploadModel{
 
@@ -34,8 +33,10 @@ namespace ApiClient.Models
 public class UploadRequest {
         public string TargetName { set; get; }
         public string TargetPath { set; get; }
+        public string CustomerId { set; get; }
         public IFormFile File { set; get; }
+        
     }
     
-  
+     
 }

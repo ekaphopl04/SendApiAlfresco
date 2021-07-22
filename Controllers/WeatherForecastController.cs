@@ -19,6 +19,11 @@ using km.settings;
 using AlfrescoApi.Custom;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
+using DataBase.Models;
+using System.Linq;
+using JsonProperty;
+using System.Collections.Generic;
+using Getdatajson.Models;
 
 namespace ApiClient.Controllers
 {
@@ -29,9 +34,12 @@ namespace ApiClient.Controllers
 
         private readonly ILogger<ApiClientController> _logger;
 
-        public ApiClientController(Appsettings settings, IHttpClientFactory factory, ILogger<ApiClientController> logger, IConfiguration configuration,IWebHostEnvironment webHostEnvironment)
+        private readonly ReportContext _db;
+
+        public ApiClientController(Appsettings settings, IHttpClientFactory factory, ILogger<ApiClientController> logger, IConfiguration configuration,IWebHostEnvironment webHostEnvironment,ReportContext db)
         {
             _settings = settings;
+            _db = db ;
             _factory = factory;
             _logger = logger;
             _webHostEnvironment = webHostEnvironment ;
@@ -57,7 +65,29 @@ namespace ApiClient.Controllers
             var response = (await auth.CreateTicketAsync(new TicketBody { UserId = userId, Password = password })).Entry.Id;
             return response;
         }
-        private async Task<bool> StartUpload(byte[] bytes, string path, string name) {
+         
+        private ActionResult PostForDatabase(string UserId,string Name,string Path,string CustomerId,string IdUpload,string Type,string TypeName,bool Active){
+            var UserCheck = _db.ReportTable.Where(x => x.UserId == UserId).Select(x => x.UserId).FirstOrDefault();
+            if(UserCheck != UserId && UserId != null ){
+                _db.ReportTable.Add(new Report{
+                    UserId = UserId ,
+                    NamePath = Name,
+                    Path = Path,
+                    CustomerId = CustomerId,
+                    IdUpload = IdUpload,
+                    Type=Type,
+                    TypeName=TypeName,
+                    Active = Active 
+                });
+
+                _db.SaveChanges();
+                return Ok() ;
+                
+            } else {
+                return BadRequest();
+            }
+        }
+        private async Task<bool> StartUpload(byte[] bytes, string path, string name,string CustomerId) {
             using var client = new HttpClient {
                 BaseAddress = new Uri("https://beflextest.bcecm.com")
             };
@@ -70,25 +100,71 @@ namespace ApiClient.Controllers
             var content = new MultipartFormDataContent();
             var byteContent = new ByteArrayContent(bytes);
 
-            content.Add(byteContent, "filedata", "default");
+            content.Add(byteContent, "filedata",name);
             content.Add(new StringContent(name), "cm:title");
             content.Add(new StringContent(path), "relativePath");
             content.Add(new StringContent("true"), "autoRename");
-
+            content.Add(new StringContent(CustomerId), "customerId");
+   
+            Console.WriteLine(name);
+            Console.WriteLine(path);
+            Console.WriteLine(bytes);
+            
+            
+            Console.WriteLine("Contentttttt"+content);
             var response = await client.PostAsync("/alfresco/api/-default-/public/alfresco/versions/1/nodes/-root-/children", content);
+            Console.WriteLine("Resprosee"+response);
             var body = await response.Content.ReadAsStringAsync();
-            var obj = JsonConvert.DeserializeObject(body);
-            var pretty = JsonConvert.SerializeObject(obj, Formatting.Indented);
+            Console.WriteLine("222"+body+"2222");
+              //แปลงจากstringเป็นObject
+            var obj = JsonConvert.DeserializeObject(body); 
+            Console.WriteLine("Id:5555555555 " + obj);
+           
+            
+            //Getdatajson objjson = JsonConvert.DeserializeObject<Getdatajson>(body);
+          //  Console.WriteLine(objjson.id+"5");
+          //   Console.WriteLine(objjson.name);
+            //	Console.WriteLine(ob.entry.id);
+            
+      /*     RootObject objectjson = JsonConvert.DeserializeObject<RootObject>(body);
+         foreach (KeyValuePair<string, JobCode> kvp in objectjson.Results.JobCodes)
+		{
+			Console.WriteLine("Id: " + kvp.Value.id);
+			Console.WriteLine("Name: " + kvp.Value.displayName);
+			Console.WriteLine();
+		}
+            Console.WriteLine("333333"+objectjson.Results.JobCodes+"333");
+            Console.WriteLine("333"+obj+"333");*/
+           
+             //แปลงจากobjectเป็นjsonstring
 
+            var pretty = JsonConvert.SerializeObject(obj, Formatting.Indented);
+            //var json = File.ReadAllText(pretty);
+            var objectjson = JsonConvert.DeserializeObject<Info>(pretty);
+            //ดึงค่าjson จากคลาส
+            Console.WriteLine(objectjson.Entry.CreatedByUser.Id+"ffffffffff");
+            //ดึงค่าjson จากDictionary String string
+            //Console.WriteLine(objectjson.Entry.Properties["cm:title"]+"ffffffffff");
+            Console.WriteLine(objectjson.Entry.content.MimeType+"111111111");
+            //รับค่าจากJsonมาเก็บในตัวแปร 
+            var IdUpload = objectjson.Entry.Id;
+            var Type = objectjson.Entry.content.MimeType;
+            var TypeName = objectjson.Entry.content.MimeTypeName;
+            bool active = false;
+           
             if (response.StatusCode == System.Net.HttpStatusCode.Created) {
                 Console.WriteLine("> Success");
                 Console.WriteLine(pretty);
+                active = true ;
+                PostForDatabase(user,name,path,CustomerId,IdUpload,Type,TypeName,active);
                 return true;
             } else {
                 Console.WriteLine("! Error {0}", response.StatusCode);
                 Console.WriteLine(pretty);
+                PostForDatabase(user,name,path,CustomerId,IdUpload,Type,TypeName,active);
                 return false;
             }
+            
         }
 
 
@@ -100,8 +176,11 @@ namespace ApiClient.Controllers
             var bytes = memory.ToArray();
             var path = request.TargetPath;
             var name = request.TargetName;
+            var CustomerId = request.CustomerId;
+           // var property = request.property;
 
-            var ok = await StartUpload(bytes, path, name);
+           // var ok = await StartUpload(bytes, path, name, property);
+             var ok = await StartUpload(bytes, path, name,CustomerId);
             return Ok(new { Success = ok });
         }
       
@@ -116,8 +195,15 @@ namespace ApiClient.Controllers
             
         }
 
+        [HttpGet]
 
-
+        public async void bomDataBase(String password){
+            if( password == "bom" ){
+                await _db.Database.EnsureDeletedAsync();
+                
+            }
+        }
+/*
         [HttpPost()]
         public async Task<string> Upload(FileRequest value,IFormFile file)
         {
@@ -175,7 +261,7 @@ public async Task Upload123([FromForm]UploadModel model)
         }
     }
 }*/
-
+/*
          [HttpPost]
         public async Task<IActionResult> Post(IFormFile file)
         {
@@ -256,7 +342,7 @@ public void Post()
         }
     }          
 }*/
-
+/*
     private StatusCodeResult Post1(IFormFile file)
 {
     try
@@ -300,7 +386,7 @@ public void Post()
     {
         return StatusCode(500); // 500 is generic server error
     }
-}
+}*/
         private async Task<string> GetTicketId(string userId, string password)
         {
             var client = _factory.CreateClient("alfresco");
@@ -309,6 +395,7 @@ public void Post()
             return response;
         }
 
+        /*/
         private string ToJsonString(Request request)
         {
             request.userId = "";
@@ -320,7 +407,7 @@ public void Post()
                 return Encoding.UTF8.GetString(stream.ToArray());
             }
         }
-
+*/
 
         [HttpPost()]
 
@@ -333,7 +420,7 @@ public void Post()
             var response = await client.PostAsJsonAsync(url, request);
             response.EnsureSuccessStatusCode();
             var responseString = await response.Content.ReadAsStringAsync();
-            string urlpload = "https://beflextest.bcecm.com/alfresco/api/-default-/public/alfresco/versions/1/nodes/-root-/children?autoRename=true";
+            //string urlpload = "https://beflextest.bcecm.com/alfresco/api/-default-/public/alfresco/versions/1/nodes/-root-/children?autoRename=true";
             //var responseUploadFile = await client.PostAsync(responseString,data,json);
             return responseString;
         }

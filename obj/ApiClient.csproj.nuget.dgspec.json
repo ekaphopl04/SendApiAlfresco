@@ -43,6 +43,14 @@
           "dependencies": {
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
+              "version": "[5.0.8, )"
+            },
+            "Npgsql": {
+              "target": "Package",
+              "version": "[5.0.7, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
               "version": "[5.0.7, )"
             },
             "Swashbuckle.AspNetCore": {
