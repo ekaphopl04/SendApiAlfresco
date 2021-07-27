@@ -33,10 +33,14 @@ namespace ApiClient.Models
 public class UploadRequest {
         public string TargetName { set; get; }
         public string TargetPath { set; get; }
-        public string CustomerId { set; get; }
-        public IFormFile File { set; get; }
+        public IFormFile File { set; get;}
+        public string[] PropertyInput { set; get;}
         
     }
     
+      public class PropertyInput{
+      public string PropertyName{ get; set; }
+      public string PropertyValue{ get; set; }
+}
      
 }

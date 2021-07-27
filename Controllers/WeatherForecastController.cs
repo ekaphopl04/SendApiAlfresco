@@ -87,10 +87,24 @@ namespace ApiClient.Controllers
                 return BadRequest();
             }
         }
-        private async Task<bool> StartUpload(byte[] bytes, string path, string name,string CustomerId) {
+        private async Task<bool> StartUpload(byte[] bytes, string path, string name,string[] PropertyInput) {
             using var client = new HttpClient {
                 BaseAddress = new Uri("https://beflextest.bcecm.com")
             };
+            //var oj = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(textJson);
+            //Console.WriteLine("PropertyName"+PropertyInput.PropertyName[0]);
+            //Console.WriteLine("PropertyValue"+PropertyInput.PropertyValue[0]);
+            //Console.WriteLine("PropertyName"+PropertyInput.PropertyName[1]);
+            //Console.WriteLine("PropertyValue"+PropertyInput.PropertyValue[1]);
+            Console.WriteLine("PropertyName"+PropertyInput.ToString());
+            Console.WriteLine("PropertyName"+PropertyInput.ToString());
+            /*Console.WriteLine("PropertyName"+PropertyInput[0].PropertyName);
+            Console.WriteLine("PropertyValue"+PropertyInput[0].PropertyValue);
+            Console.WriteLine("PropertyName"+PropertyInput[1].PropertyName);
+            Console.WriteLine("PropertyValue"+PropertyInput[1].PropertyValue);*/
+            
+     
+            
             var user = "admin";
             var password = "abcABC123";
             var userPassword = user+":"+password;
@@ -99,12 +113,12 @@ namespace ApiClient.Controllers
             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", base64);
             var content = new MultipartFormDataContent();
             var byteContent = new ByteArrayContent(bytes);
-
             content.Add(byteContent, "filedata",name);
             content.Add(new StringContent(name), "cm:title");
+            //content.Add(new StringContent(CustomerId), "test:test1");
             content.Add(new StringContent(path), "relativePath");
             content.Add(new StringContent("true"), "autoRename");
-            content.Add(new StringContent(CustomerId), "customerId");
+           
    
             Console.WriteLine(name);
             Console.WriteLine(path);
@@ -150,6 +164,7 @@ namespace ApiClient.Controllers
             var IdUpload = objectjson.Entry.Id;
             var Type = objectjson.Entry.content.MimeType;
             var TypeName = objectjson.Entry.content.MimeTypeName;
+            var CustomerId = "";
             bool active = false;
            
             if (response.StatusCode == System.Net.HttpStatusCode.Created) {
@@ -169,18 +184,28 @@ namespace ApiClient.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<dynamic>> UploadFile([FromForm] UploadRequest request) {
+        public async Task<ActionResult<dynamic>> UploadFile([FromForm]UploadRequest request) {
             var memory = new MemoryStream();
             request.File.CopyTo(memory);
 
             var bytes = memory.ToArray();
             var path = request.TargetPath;
             var name = request.TargetName;
-            var CustomerId = request.CustomerId;
+           // var textJson = request.textJson;
+  
+            string[] PropertyInput = request.PropertyInput;
+            var sss = JsonConvert.SerializeObject(PropertyInput, Formatting.Indented);
+             var ss2 = JsonConvert.SerializeObject(request.PropertyInput, Formatting.Indented);
+            Console.WriteLine("แปลงเป็นjsonแล้วแสดง"+sss);
+            Console.WriteLine("แปลงเป็นjsonแล้วแสดงแบบที่2"+ss2);
+            Console.WriteLine("PropertyNameแบบแรก"+request.PropertyInput.ToString());
+            Console.WriteLine("PropertyNameแบบสอง"+PropertyInput.ToString());
+            Console.WriteLine("PropertyNameแบบสาม"+PropertyInput);
+            
            // var property = request.property;
 
            // var ok = await StartUpload(bytes, path, name, property);
-             var ok = await StartUpload(bytes, path, name,CustomerId);
+             var ok = await StartUpload(bytes, path, name,PropertyInput);
             return Ok(new { Success = ok });
         }
       
@@ -188,9 +213,12 @@ namespace ApiClient.Controllers
 
         [HttpPost]
         public async Task<string> Connect2(Request request)
-        {
+        {   string json = @"{""user"":{""name"":""asdf"",""teamname"":""b"",""email"":""c"",""players"":[""1"",""2""]}}";
+            var oj = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(json);
+             Console.WriteLine(""+oj.user+oj.user.name+oj.user.teamname+oj.user.email+oj.user.players);
             var ticket = await this.GetTicketId(request.userId,request.password);
             var client = new AlfrescoApi.Custom.CustomApiClient("https://beflextest.bcecm.com", ticket);
+            
             return "";
             
         }
